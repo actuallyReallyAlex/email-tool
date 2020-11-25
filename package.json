@@ -1,0 +1,23 @@
+{
+  "name": "email-tool",
+  "version": "0.0.0",
+  "description": "A tool to help manage a messy inbox.",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node build/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexlee-dev/email-tool.git"
+  },
+  "author": "Alex Lee (www.alexlee.dev)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/alexlee-dev/email-tool/issues"
+  },
+  "homepage": "https://github.com/alexlee-dev/email-tool#readme",
+  "devDependencies": {
+    "typescript": "^4.1.2"
+  }
+}
