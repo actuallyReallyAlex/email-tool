@@ -14,25 +14,48 @@ const main = async () => {
     const auth = await authorize(credentials);
 
     const gmail = google.gmail({ version: "v1", auth });
-    const response = await gmail.users.messages.list({ userId: "me" });
-    if (!response.data.messages) {
-      throw new Error("No messages on response");
+
+    const allMessages = [];
+    let nextPageExists = true;
+    let nextPageToken = undefined;
+
+    console.log(chalk.yellow("Fetching messages ..."));
+    while (nextPageExists) {
+      const listOfMessages = await gmail.users.messages.list({
+        userId: "me",
+        q: "unsubscribe",
+        pageToken: nextPageToken,
+      });
+
+      const batchMessages = listOfMessages.data.messages;
+      const token: any = listOfMessages.data.nextPageToken;
+
+      if (batchMessages) {
+        allMessages.push(...batchMessages);
+      }
+
+      if (token) {
+        nextPageToken = token;
+      } else {
+        nextPageToken = undefined;
+        nextPageExists = false;
+      }
     }
 
-    const firstMessageId = response.data.messages[0].id;
+    console.log(
+      `Total Number of Messages Containing 'Unsubscribe' - ${chalk.green(
+        allMessages.length
+      )}`
+    );
 
-    if (!firstMessageId) {
-      throw new Error("Error in response");
-    }
+    // const firstMessage = await gmail.users.messages.get({
+    //   userId: "me",
+    //   id: firstMessageId,
+    // });
 
-    const firstMessage = await gmail.users.messages.get({
-      userId: "me",
-      id: firstMessageId,
-    });
-
-    const subject = firstMessage.data.payload?.headers?.find(
-      (header) => header.name === "Subject"
-    )?.value;
+    // const subject = firstMessage.data.payload?.headers?.find(
+    //   (header) => header.name === "Subject"
+    // )?.value;
     // if (
     //   !firstMessage.data.payload?.parts ||
     //   !firstMessage.data.payload.parts[0].body?.data
@@ -44,7 +67,7 @@ const main = async () => {
     //   "base64"
     // ).toString("utf8");
 
-    console.log(`Subject - ${chalk.green(subject)}`);
+    // console.log(`Subject - ${chalk.green(subject)}`);
   } catch (error) {
     console.error(error);
   }
