@@ -18,6 +18,14 @@
   },
   "homepage": "https://github.com/alexlee-dev/email-tool#readme",
   "devDependencies": {
+    "@types/chalk": "^2.2.0",
+    "@types/fs-extra": "^9.0.4",
+    "@types/node": "^14.14.10",
     "typescript": "^4.1.2"
+  },
+  "dependencies": {
+    "chalk": "^4.1.0",
+    "fs-extra": "^9.0.1",
+    "googleapis": "^65.0.0"
   }
 }
