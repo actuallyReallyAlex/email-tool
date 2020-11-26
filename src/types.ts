@@ -1,3 +1,10 @@
+import EventEmitter from "events";
+
+export interface AppState {
+  menuAction: MenuAction;
+  menuActionEmitter: EventEmitter.EventEmitter;
+}
+
 export interface Credentials {
   installed: {
     client_id: string;
@@ -9,6 +16,8 @@ export interface Credentials {
     redirect_uris: string[];
   };
 }
+
+export type MenuAction = "about" | "exit" | "findMessages" | null;
 
 export interface Message {
   date: string;
