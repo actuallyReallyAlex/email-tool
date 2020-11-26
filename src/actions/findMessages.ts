@@ -93,6 +93,10 @@ const findMessages = async (): Promise<void> => {
           messageData.data.payload?.headers?.find(
             (header) => header.name === "Subject"
           )?.value || "",
+        unsubscribeUrl:
+          messageData.data.payload?.headers?.find(
+            (header) => header.name === "List-Unsubscribe"
+          )?.value || null,
       };
 
       allMessageData.push(data);
@@ -136,6 +140,7 @@ const findMessages = async (): Promise<void> => {
           messages: [{ ...messageData }],
           name: messageData.from,
           numberOfMessages: 1,
+          unsubscribeUrl: messageData.unsubscribeUrl,
         };
         senderDetailsData.push(newSenderDetails);
       }

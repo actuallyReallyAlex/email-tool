@@ -17,7 +17,12 @@ export interface Credentials {
   };
 }
 
-export type MenuAction = "about" | "exit" | "findMessages" | "sortMessages" | null;
+export type MenuAction =
+  | "about"
+  | "exit"
+  | "findMessages"
+  | "sortMessages"
+  | null;
 
 export interface Message {
   date: string;
@@ -25,6 +30,7 @@ export interface Message {
   id: string;
   snippet: string;
   subject: string;
+  unsubscribeUrl: string | null;
 }
 
 export interface SenderDetails {
@@ -32,4 +38,5 @@ export interface SenderDetails {
   messages: Message[];
   name: string;
   numberOfMessages: number;
+  unsubscribeUrl: string | null;
 }

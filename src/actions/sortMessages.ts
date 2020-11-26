@@ -55,9 +55,13 @@ const sortMessages = async (): Promise<void> => {
       }
     });
 
+    console.log("Writing choices to file ...");
+
     await fse.writeJSON(path.join(__dirname, "../../choices.json"), choices, {
       spaces: 2,
     });
+
+    console.log(chalk.green("Choices saved successfully!"));
   } catch (error) {
     console.error(chalk.red(error));
   }
