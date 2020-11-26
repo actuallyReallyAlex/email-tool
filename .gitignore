@@ -1,2 +1,7 @@
 build/
+choices.json
+credentials.json
 node_modules/
+results.json
+senderDetails.json
+token.json
