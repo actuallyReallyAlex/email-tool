@@ -3,6 +3,7 @@ import fse from "fs-extra";
 import { google } from "googleapis";
 import path from "path";
 import ProgressBar from "progress";
+import { v4 as uuid } from "uuid";
 
 import { Credentials, Message, SenderDetails } from "../types";
 
@@ -101,9 +102,9 @@ const findMessages = async (): Promise<void> => {
 
     console.log(chalk.green("Message data gathered successfully!"));
     console.log("");
-    console.log("Sorting message data ...");
+    console.log("Creating sender details report...");
 
-    const sortedMessageDataBar = new ProgressBar(
+    const senderDetailsBar = new ProgressBar(
       "[:bar] :percent (:current / :total) :etas",
       {
         total: allMessageData.length,
@@ -111,37 +112,38 @@ const findMessages = async (): Promise<void> => {
       }
     );
 
-    const sortedMessageData: SenderDetails[] = [];
+    const senderDetailsData: SenderDetails[] = [];
 
     for (let j = 0; j < allMessageData.length; j++) {
       const messageData = allMessageData[j];
       // * Determine if a sender is already known in the list
-      const correspondingSenderDetailsIndex = sortedMessageData.findIndex(
+      const correspondingSenderDetailsIndex = senderDetailsData.findIndex(
         (sender) => sender.name === messageData.from
       );
 
       if (correspondingSenderDetailsIndex > -1) {
         // * If found, add to sender object
-        sortedMessageData[correspondingSenderDetailsIndex].messages.push({
+        senderDetailsData[correspondingSenderDetailsIndex].messages.push({
           ...messageData,
         });
-        sortedMessageData[correspondingSenderDetailsIndex].numberOfMessages =
-          sortedMessageData[correspondingSenderDetailsIndex].numberOfMessages +
+        senderDetailsData[correspondingSenderDetailsIndex].numberOfMessages =
+          senderDetailsData[correspondingSenderDetailsIndex].numberOfMessages +
           1;
       } else {
         // * If not found, create new sender object
         const newSenderDetails: SenderDetails = {
+          id: uuid(),
           messages: [{ ...messageData }],
           name: messageData.from,
           numberOfMessages: 1,
         };
-        sortedMessageData.push(newSenderDetails);
+        senderDetailsData.push(newSenderDetails);
       }
-      sortedMessageDataBar.tick();
+      senderDetailsBar.tick();
     }
 
     // * Sort by number of messages
-    sortedMessageData.sort((a, b) => {
+    senderDetailsData.sort((a, b) => {
       if (a.numberOfMessages > b.numberOfMessages) {
         return -1;
       } else {
@@ -150,14 +152,14 @@ const findMessages = async (): Promise<void> => {
     });
 
     await fse.writeJSON(
-      path.join(__dirname, "../../sortedMessageData.json"),
-      sortedMessageData,
+      path.join(__dirname, "../../senderDetails.json"),
+      senderDetailsData,
       {
         spaces: 2,
       }
     );
 
-    console.log(chalk.green("Sorted Message Data stored successfully!"));
+    console.log(chalk.green("Sender Details report created successfully!"));
   } catch (error) {
     console.error(error);
   }

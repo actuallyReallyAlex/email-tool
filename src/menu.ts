@@ -3,6 +3,7 @@ import chalk from "chalk";
 import inquirer from "inquirer";
 
 import findMessages from "./actions/findMessages";
+import sortMessages from "./actions/sortMessages";
 
 import { blankBoxenStyle } from "./constants";
 import { titleScreen } from "./util";
@@ -24,6 +25,7 @@ export const displayMainMenu = (state: AppState): Promise<MenuAction> =>
           name: "menuAction",
           choices: [
             { value: "findMessages", name: "Find Messages" },
+            { value: "sortMessages", name: "Sort Messages" },
             new inquirer.Separator(),
             { value: "about", name: "About" },
             { value: "exit", name: "Exit" },
@@ -87,6 +89,15 @@ export const interpretMenuAction = async (state: AppState): Promise<void> => {
         await titleScreen("Email Tool");
 
         await findMessages();
+
+        console.log("Press any key to return to Main Menu ...");
+        await keypress();
+        state.menuActionEmitter.emit("actionCompleted", state);
+      },
+      sortMessages: async (state: AppState): Promise<void> => {
+        await titleScreen("Email Tool");
+
+        await sortMessages();
 
         console.log("Press any key to return to Main Menu ...");
         await keypress();

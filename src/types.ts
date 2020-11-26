@@ -17,7 +17,7 @@ export interface Credentials {
   };
 }
 
-export type MenuAction = "about" | "exit" | "findMessages" | null;
+export type MenuAction = "about" | "exit" | "findMessages" | "sortMessages" | null;
 
 export interface Message {
   date: string;
@@ -28,6 +28,7 @@ export interface Message {
 }
 
 export interface SenderDetails {
+  id: string;
   messages: Message[];
   name: string;
   numberOfMessages: number;
