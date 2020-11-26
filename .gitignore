@@ -1,4 +1,6 @@
 build/
 credentials.json
 node_modules/
+results.json
+sortedMessageData.json
 token.json

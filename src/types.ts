@@ -9,3 +9,17 @@ export interface Credentials {
     redirect_uris: string[];
   };
 }
+
+export interface Message {
+  date: string;
+  from: string;
+  id: string;
+  snippet: string;
+  subject: string;
+}
+
+export interface SenderDetails {
+  messages: Message[];
+  name: string;
+  numberOfMessages: number;
+}
