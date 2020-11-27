@@ -1,5 +1,4 @@
 import chalk from "chalk";
-import clear from "clear";
 import EventEmitter from "events";
 
 import { displayMainMenu, interpretMenuAction } from "./menu";
@@ -32,7 +31,4 @@ const main = async (): Promise<void> => {
   }
 };
 
-// * Handle local development with `npm start`
-if (process.argv[3] === "start") main();
-
-export default main;
+main();

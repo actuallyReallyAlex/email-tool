@@ -57,16 +57,16 @@ const findMessages = async (): Promise<void> => {
     const messageDataBar = new ProgressBar(
       "[:bar] :percent (:current / :total) :etas",
       {
-        // total: allMessages.length,
-        total: 10,
+        total: allMessages.length,
+        // total: 10,
         width: 50,
       }
     );
 
     const allMessageData: Message[] = [];
 
-    for (let i = 0; i < 10; i++) {
-      // for (let i = 0; i < allMessages.length; i++) {
+    // for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < allMessages.length; i++) {
       const message = allMessages[i];
 
       if (!message.id) {

@@ -12,54 +12,87 @@ const sortMessages = async (): Promise<void> => {
       path.join(__dirname, "../../senderDetails.json")
     );
 
-    // * For each sender, go through and "whitelist" / "blacklist" / "remove"
-    const prompts = senderDetails.map((detail) => ({
-      type: "list",
-      message: detail.name,
-      name: detail.id,
-      choices: [
-        { name: "Blacklist", value: "blacklist" },
-        { name: "Whitelist", value: "whitelist" },
-        { name: "Remove", value: "remove" },
-      ],
-    }));
-    const answers = await inquirer.prompt(prompts);
+    // * Check if choices already exist
+    const choicesExist = await fse.pathExists(
+      path.join(__dirname, "../../choices.json")
+    );
 
-    const keys = Object.keys(answers);
+    let existingChoices: {
+      blacklist: string[];
+      whitelist: string[];
+      remove: string[];
+    } = {
+      blacklist: [],
+      whitelist: [],
+      remove: [],
+    };
+
+    if (choicesExist) {
+      existingChoices = await fse.readJSON(
+        path.join(__dirname, "../../choices.json")
+      );
+    }
+
+    // * For each sender, go through and "whitelist" / "blacklist" / "remove"
+    const prompts = senderDetails
+      .filter(
+        (detail) =>
+          !existingChoices.blacklist.includes(detail.id) &&
+          !existingChoices.whitelist.includes(detail.id) &&
+          !existingChoices.remove.includes(detail.id)
+      )
+      .map((detail, i, arr) => ({
+        type: "list",
+        message: `#${i + 1} / ${arr.length} - ${detail.name}`,
+        name: detail.id,
+        choices: [
+          { name: "Blacklist", value: "blacklist" },
+          { name: "Whitelist", value: "whitelist" },
+          { name: "Remove", value: "remove" },
+        ],
+      }));
 
     const whitelist: string[] = [];
     const blacklist: string[] = [];
     const remove: string[] = [];
 
-    const choices = {
-      whitelist,
-      blacklist,
-      remove,
-    };
+    // * Create list of un-choiced prompts
 
-    keys.forEach((key) => {
-      const answer: "blacklist" | "whitelist" | "remove" = answers[key];
-
-      switch (answer) {
+    for (let i = 0; i < prompts.length; i++) {
+      const prompt = prompts[i];
+      const answer = await inquirer.prompt([prompt]);
+      const id = Object.keys(answer)[0];
+      const value = Object.values(answer)[0];
+      switch (value) {
         case "blacklist":
-          blacklist.push(key);
+          blacklist.push(id);
           break;
         case "whitelist":
-          whitelist.push(key);
+          whitelist.push(id);
           break;
         case "remove":
-          remove.push(key);
+          remove.push(id);
           break;
         default:
           break;
       }
-    });
 
-    console.log("Writing choices to file ...");
+      const choices = {
+        whitelist,
+        blacklist,
+        remove,
+      };
 
-    await fse.writeJSON(path.join(__dirname, "../../choices.json"), choices, {
-      spaces: 2,
-    });
+      const updatedChoices = { ...existingChoices, ...choices };
+
+      await fse.writeJSON(
+        path.join(__dirname, "../../choices.json"),
+        updatedChoices,
+        {
+          spaces: 2,
+        }
+      );
+    }
 
     console.log(chalk.green("Choices saved successfully!"));
   } catch (error) {
