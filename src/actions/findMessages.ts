@@ -54,19 +54,20 @@ const findMessages = async (): Promise<void> => {
 
     console.log("Gathering message data ...");
 
+    const numberOfOperations = allMessages.length;
+    // * const numberOfOperations = 10;
+
     const messageDataBar = new ProgressBar(
       "[:bar] :percent (:current / :total) :etas",
       {
-        total: allMessages.length,
-        // total: 10,
+        total: numberOfOperations,
         width: 50,
       }
     );
 
     const allMessageData: Message[] = [];
 
-    // for (let i = 0; i < 10; i++) {
-    for (let i = 0; i < allMessages.length; i++) {
+    for (let i = 0; i < numberOfOperations; i++) {
       const message = allMessages[i];
 
       if (!message.id) {
@@ -78,6 +79,7 @@ const findMessages = async (): Promise<void> => {
         id: message.id,
       });
 
+      // TODO - Refactor this so you're not performing so many operations
       const data: Message = {
         date:
           messageData.data.payload?.headers?.find(
@@ -140,6 +142,16 @@ const findMessages = async (): Promise<void> => {
           messages: [{ ...messageData }],
           name: messageData.from,
           numberOfMessages: 1,
+          unsubscribe: {
+            http:
+              messageData.unsubscribeUrl
+                ?.split(",")
+                .find((val) => val.match(/http/) !== null) || null,
+            mailto:
+              messageData.unsubscribeUrl
+                ?.split(",")
+                .find((val) => val.match(/mailto/) !== null) || null,
+          },
           unsubscribeUrl: messageData.unsubscribeUrl,
         };
         senderDetailsData.push(newSenderDetails);

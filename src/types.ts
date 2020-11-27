@@ -38,5 +38,11 @@ export interface SenderDetails {
   messages: Message[];
   name: string;
   numberOfMessages: number;
+  unsubscribe: UnsubscribeDetails;
   unsubscribeUrl: string | null;
+}
+
+interface UnsubscribeDetails {
+  http: string | null;
+  mailto: string | null;
 }
