@@ -26,6 +26,7 @@ export const displayMainMenu = (state: AppState): Promise<MenuAction> =>
           choices: [
             { value: "findMessages", name: "Find Messages" },
             { value: "sortMessages", name: "Sort Messages" },
+            { value: "unsubscribe", name: "Unsubscribe" },
             new inquirer.Separator(),
             { value: "about", name: "About" },
             { value: "exit", name: "Exit" },
@@ -73,6 +74,7 @@ export const interpretMenuAction = async (state: AppState): Promise<void> => {
     if (state.menuAction === null) {
       throw new Error("menuAction can not be `null`");
     }
+    // TODO - Refactor - many "actions" are doing almost the same thing
     const actions = {
       about: async (state: AppState): Promise<void> => {
         await titleScreen("Email Tool");
@@ -95,6 +97,15 @@ export const interpretMenuAction = async (state: AppState): Promise<void> => {
         state.menuActionEmitter.emit("actionCompleted", state);
       },
       sortMessages: async (state: AppState): Promise<void> => {
+        await titleScreen("Email Tool");
+
+        await sortMessages();
+
+        console.log("Press any key to return to Main Menu ...");
+        await keypress();
+        state.menuActionEmitter.emit("actionCompleted", state);
+      },
+      unsubscribe: async (state: AppState): Promise<void> => {
         await titleScreen("Email Tool");
 
         await sortMessages();

@@ -22,6 +22,7 @@ export type MenuAction =
   | "exit"
   | "findMessages"
   | "sortMessages"
+  | "unsubscribe"
   | null;
 
 export interface Message {
