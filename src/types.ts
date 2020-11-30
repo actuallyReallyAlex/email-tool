@@ -3,6 +3,13 @@ import EventEmitter from "events";
 export interface AppState {
   menuAction: MenuAction;
   menuActionEmitter: EventEmitter.EventEmitter;
+  userEmail: string;
+}
+
+export interface Choices {
+  blacklist: string[];
+  whitelist: string[];
+  remove: string[]
 }
 
 export interface Credentials {
@@ -22,6 +29,7 @@ export type MenuAction =
   | "exit"
   | "findMessages"
   | "sortMessages"
+  | "unsubscribe"
   | null;
 
 export interface Message {
@@ -38,5 +46,11 @@ export interface SenderDetails {
   messages: Message[];
   name: string;
   numberOfMessages: number;
+  unsubscribe: UnsubscribeDetails;
   unsubscribeUrl: string | null;
+}
+
+interface UnsubscribeDetails {
+  http: string | null;
+  mailto: string | null;
 }

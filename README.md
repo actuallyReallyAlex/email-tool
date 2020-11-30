@@ -43,3 +43,7 @@ A tool to help manage a messy inbox.
 ## ✍️ Authors <a name = "authors"></a>
 
 - [Alex Lee](https://www.alexlee.dev/) - Senior Software Engineer
+
+## 💬 Attribution <a name = "attribution"></a>
+
+Mail icon made by [Smashicons](https://smashicons.com/) from [www.flaticon.com](https://www.flaticon.com/)

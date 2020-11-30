@@ -1,11 +1,13 @@
 import chalk from "chalk";
-import clear from "clear";
 import EventEmitter from "events";
+import fse from "fs-extra";
+import { google } from "googleapis";
+import path from "path";
 
 import { displayMainMenu, interpretMenuAction } from "./menu";
-import { titleScreen } from "./util";
+import { authorize, titleScreen } from "./util";
 
-import { AppState } from "./types";
+import { AppState, Credentials } from "./types";
 
 const main = async (): Promise<void> => {
   const menuActionEmitter = new EventEmitter.EventEmitter();
@@ -15,10 +17,19 @@ const main = async (): Promise<void> => {
     await interpretMenuAction(state);
   });
 
+  const credentials: Credentials = await fse.readJSON(
+    path.join(__dirname, "../credentials.json")
+  );
+  const auth = await authorize(credentials);
+  const gmail = google.gmail({ version: "v1", auth });
+  const profileResponse = await gmail.users.getProfile({ userId: "me" });
+  const userEmail = profileResponse.data.emailAddress || "Email Not Found";
+
   // * Application State
   const state: AppState = {
     menuAction: null,
     menuActionEmitter,
+    userEmail,
   };
 
   try {
@@ -32,7 +43,4 @@ const main = async (): Promise<void> => {
   }
 };
 
-// * Handle local development with `npm start`
-if (process.argv[3] === "start") main();
-
-export default main;
+main();
