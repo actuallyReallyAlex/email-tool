@@ -3,6 +3,13 @@ import EventEmitter from "events";
 export interface AppState {
   menuAction: MenuAction;
   menuActionEmitter: EventEmitter.EventEmitter;
+  userEmail: string;
+}
+
+export interface Choices {
+  blacklist: string[];
+  whitelist: string[];
+  remove: string[]
 }
 
 export interface Credentials {

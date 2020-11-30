@@ -4,6 +4,7 @@ import inquirer from "inquirer";
 
 import findMessages from "./actions/findMessages";
 import sortMessages from "./actions/sortMessages";
+import unsubscribe from "./actions/unsubscribe";
 
 import { blankBoxenStyle } from "./constants";
 import { titleScreen } from "./util";
@@ -18,6 +19,9 @@ import { AppState, MenuAction } from "./types";
 export const displayMainMenu = (state: AppState): Promise<MenuAction> =>
   new Promise(async (resolve, reject) => {
     try {
+      console.log("");
+      console.log(chalk.blue(`User Email - ${state.userEmail}`));
+      console.log("");
       const { menuAction } = await inquirer.prompt([
         {
           type: "list",
@@ -108,7 +112,7 @@ export const interpretMenuAction = async (state: AppState): Promise<void> => {
       unsubscribe: async (state: AppState): Promise<void> => {
         await titleScreen("Email Tool");
 
-        await sortMessages();
+        await unsubscribe();
 
         console.log("Press any key to return to Main Menu ...");
         await keypress();
