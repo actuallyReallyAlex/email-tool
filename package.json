@@ -1,6 +1,6 @@
 {
   "name": "email-tool",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A tool to help manage a messy inbox.",
   "main": "index.js",
   "scripts": {
