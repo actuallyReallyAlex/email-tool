@@ -25,6 +25,7 @@ export const authenticate = async (
     const gmail = google.gmail({ version: "v1", auth: oAuth2Client });
     const profileResponse = await gmail.users.getProfile({ userId: "me" });
     const userEmail = profileResponse.data.emailAddress || "Email Not Found";
+
     return { authentication: oAuth2Client, userEmail };
   } catch (error) {
     console.error(chalk.red(error));

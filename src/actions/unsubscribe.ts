@@ -1,7 +1,8 @@
-import chalk, { black } from "chalk";
-import { debug } from "console";
+import chalk from "chalk";
 import fse from "fs-extra";
+import { google } from "googleapis";
 import path from "path";
+import ProgressBar from "progress";
 
 import { AppState, Choices, SenderDetails } from "../types";
 
@@ -39,7 +40,96 @@ const unsubscribe = async (state: AppState): Promise<void> => {
     console.log(
       chalk.green("List of blacklisted senders created successfully!")
     );
-  } catch (error) {}
+
+    const gmail = google.gmail({ version: "v1", auth: state.authentication });
+    const unsubscribeBar = new ProgressBar(
+      "[:bar] :percent (:current / :total) :etas",
+      {
+        total: blacklist.filter(
+          (element) => element.unsubscribe.mailto !== null
+        ).length,
+        width: 50,
+      }
+    );
+    let successfulUnsubscribes = 0;
+
+    for (let i = 0; i < blacklist.length; i++) {
+      // TODO - Figure out why async/await isn't working in this for loop
+      const element = blacklist[i];
+
+      if (element.unsubscribe.mailto) {
+        const subject = "Unsubscribe User";
+        const messageParts = [
+          `From: John Doe <${state.userEmail}>`,
+          `To: ${element.name}`,
+          "Content-Type: text/html; charset=utf-8",
+          "MIME-Version: 1.0",
+          `Subject: ${subject}`,
+          "",
+          "Unsubscribe this user immediately. Thank you.",
+        ];
+        const message = messageParts.join("\n");
+        const encodedMessage = Buffer.from(message)
+          .toString("base64")
+          .replace(/\+/g, "-")
+          .replace(/\//g, "_")
+          .replace(/=+$/, "");
+
+        // TODO - Fix async not really working
+        // ? Use promises.all?
+        // TODO - Once unsubscribed, add to a list of unsubscribed senders so you don't repeat yourself
+        gmail.users.messages
+          .send({
+            requestBody: {
+              raw: encodedMessage,
+            },
+            userId: "me",
+          })
+          .then((res) => {
+            // * Success => res.status === 200;
+            if (res.status !== 200) {
+              console.log(res);
+              debugger;
+              return;
+            }
+            // * Move to "Email Tool" label/folder
+            gmail.users.messages
+              .batchModify({
+                requestBody: {
+                  addLabelIds: [state.labelId],
+                  ids: senderDetails
+                    .find((detail) => detail.id === element.id)
+                    ?.messages.map((message) => message.id),
+                  removeLabelIds: ["INBOX"],
+                },
+                userId: "me",
+              })
+              .then((val) => {
+                if (i === 0) {
+                  debugger;
+                }
+                successfulUnsubscribes += 1;
+                unsubscribeBar.tick();
+              })
+              .catch((err) => {
+                console.error(chalk.red(err));
+                debugger;
+              });
+          })
+          .catch((err) => {
+            console.error(chalk.red(err));
+            debugger;
+          });
+      }
+    }
+    console.log(
+      chalk.green(
+        `Successfully unscubscribed from ${successfulUnsubscribes} senders!`
+      )
+    );
+  } catch (error) {
+    console.error(chalk.red(error));
+  }
 };
 
 export default unsubscribe;

@@ -24,7 +24,7 @@ const findMessages = async (state: AppState): Promise<void> => {
     while (nextPageExists) {
       const listOfMessages = await gmail.users.messages.list({
         userId: "me",
-        q: "unsubscribe",
+        q: "in:inbox AND unsubscribe",
         pageToken: nextPageToken,
         maxResults: 10000,
       });
@@ -144,11 +144,15 @@ const findMessages = async (state: AppState): Promise<void> => {
             http:
               messageData.unsubscribeUrl
                 ?.split(",")
-                .find((val) => val.match(/http/) !== null) || null,
+                .find((val) => val.match(/http/) !== null)
+                ?.replace(/</g, "")
+                .replace(/>/g, "") || null,
             mailto:
               messageData.unsubscribeUrl
                 ?.split(",")
-                .find((val) => val.match(/mailto/) !== null) || null,
+                .find((val) => val.match(/mailto/) !== null)
+                ?.replace(/</g, "")
+                .replace(/>/g, "") || null,
           },
           unsubscribeUrl: messageData.unsubscribeUrl,
         };

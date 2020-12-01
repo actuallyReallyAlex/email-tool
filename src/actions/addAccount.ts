@@ -13,6 +13,7 @@ import { Credentials, Token } from "../types";
 // TODO - Refactor to include stuff coming in from State
 const addAccount = async (): Promise<{
   authentication: OAuth2Client;
+  labelId: string;
   userEmail: string;
 } | void> => {
   try {
@@ -25,7 +26,11 @@ const addAccount = async (): Promise<{
     );
     const authUrl = oAuth2Client.generateAuthUrl({
       access_type: "offline",
-      scope: ["https://www.googleapis.com/auth/gmail.readonly"],
+      scope: [
+        "https://www.googleapis.com/auth/gmail.readonly",
+        "https://www.googleapis.com/auth/gmail.send",
+        "https://www.googleapis.com/auth/gmail.modify",
+      ],
     });
     console.log(
       chalk.blue(`Authorize this application by visiting this url - ${authUrl}`)
@@ -45,17 +50,35 @@ const addAccount = async (): Promise<{
     const profileResponse = await gmail.users.getProfile({ userId: "me" });
     const userEmail = profileResponse.data.emailAddress || "Email Not Found";
 
+    // * Set up "Email Tool - To Be Deleted" label
+    const labelResponse = await gmail.users.labels.create({
+      userId: "me",
+      requestBody: {
+        name: "Email Tool - To Be Deleted",
+        messageListVisibility: "SHOW",
+        labelListVisibility: "LABEL_SHOW",
+      },
+    });
+    const labelId = labelResponse.data.id;
+
+    if (!labelId) {
+      throw new Error("No labelId!");
+    }
+
     const existingTokens: Token[] = await fse.readJSON(tokensPath);
 
     await fse.writeJSON(
       tokensPath,
-      [...existingTokens, { ...response.tokens, emailAddress: userEmail }],
+      [
+        ...existingTokens,
+        { ...response.tokens, emailAddress: userEmail, labelId },
+      ],
       { spaces: 2 }
     );
 
     console.log(chalk.green(`Application Authenticated for ${userEmail}!`));
 
-    return { authentication: oAuth2Client, userEmail };
+    return { authentication: oAuth2Client, labelId, userEmail };
   } catch (error) {
     console.log(chalk.red(error));
   }

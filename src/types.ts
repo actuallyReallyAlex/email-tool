@@ -3,6 +3,7 @@ import { OAuth2Client } from "google-auth-library";
 
 export interface AppState {
   authentication: OAuth2Client;
+  labelId: string;
   menuAction: MenuAction;
   menuActionEmitter: EventEmitter.EventEmitter;
   numberOfAccounts: number;
@@ -95,6 +96,7 @@ export interface SenderDetails {
 }
 
 export interface Token {
+  labelId: string;
   access_token: string;
   emailAddress: string;
   refresh_token: string;

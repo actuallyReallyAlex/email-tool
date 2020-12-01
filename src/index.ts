@@ -35,11 +35,13 @@ const main = async (): Promise<void> => {
   const { client_secret, client_id, redirect_uris } = credentials.installed;
   let oAuth2Client: OAuth2Client;
   let userEmail: string = "";
+  let labelId: string = "";
 
   if (tokens.length === 0) {
     // * Initial setup
     const result: {
       authentication: OAuth2Client;
+      labelId: string;
       userEmail: string;
     } | void = await addAccount();
     if (!result) {
@@ -47,6 +49,7 @@ const main = async (): Promise<void> => {
     }
     oAuth2Client = result.authentication;
     userEmail = result.userEmail;
+    labelId = result.labelId;
   } else if (tokens.length === 1) {
     const result: {
       authentication: OAuth2Client;
@@ -62,10 +65,12 @@ const main = async (): Promise<void> => {
     }
     oAuth2Client = result.authentication;
     userEmail = result.userEmail;
+    labelId = tokens[0].labelId;
   } else {
     // * User picks an account
     const result: {
       authentication: OAuth2Client;
+      labelId: string;
       userEmail: string;
     } | void = await selectAccount();
     if (!result) {
@@ -73,11 +78,13 @@ const main = async (): Promise<void> => {
     }
     oAuth2Client = result.authentication;
     userEmail = result.userEmail;
+    labelId = result.labelId;
   }
 
   // * Application State
   const state: AppState = {
     authentication: oAuth2Client,
+    labelId,
     menuAction: null,
     menuActionEmitter,
     numberOfAccounts: tokens.length,

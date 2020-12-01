@@ -11,6 +11,7 @@ import { Credentials, Token } from "../types";
 // TODO - Refactor to include stuff coming in from State
 const selectAccount = async (): Promise<{
   authentication: OAuth2Client;
+  labelId: string;
   userEmail: string;
 } | void> => {
   try {
@@ -48,7 +49,10 @@ const selectAccount = async (): Promise<{
     if (!result) {
       throw new Error("No result!");
     }
-    return result;
+    return {
+      ...result,
+      labelId: tokens[chosenAccount.account].labelId,
+    };
   } catch (error) {
     console.error(chalk.red(error));
   }
