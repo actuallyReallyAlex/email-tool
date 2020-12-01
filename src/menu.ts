@@ -159,7 +159,7 @@ export const interpretMenuAction = async (state: AppState): Promise<void> => {
       unsubscribe: async (state: AppState): Promise<void> => {
         await titleScreen("Email Tool");
 
-        await unsubscribe();
+        await unsubscribe(state);
 
         console.log("Press any key to return to Main Menu ...");
         await keypress();
