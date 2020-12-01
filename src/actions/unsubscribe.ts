@@ -3,19 +3,29 @@ import { debug } from "console";
 import fse from "fs-extra";
 import path from "path";
 
-import { Choices, SenderDetails } from "../types";
+import { AppState, Choices, SenderDetails } from "../types";
 
 // TODO - This blacklist creation functionality should not be a part of the 'unsubscribe' functionality
-const unsubscribe = async (): Promise<void> => {
+const unsubscribe = async (state: AppState): Promise<void> => {
   try {
     console.log(chalk.yellow("Creating list of blacklisted senders ..."));
+    const choicesPath = path.join(
+      __dirname,
+      `../../output/${state.userEmail}/choices.json`
+    );
+    const senderDetailsPath = path.join(
+      __dirname,
+      `../../output/${state.userEmail}/senderDetails.json`
+    );
+    const blacklistPath = path.join(
+      __dirname,
+      `../../output/${state.userEmail}/blacklist.json`
+    );
 
     // * Read choices
-    const choices: Choices = await fse.readJSON(
-      path.join(__dirname, "../../choices.json")
-    );
+    const choices: Choices = await fse.readJSON(choicesPath);
     const senderDetails: SenderDetails[] = await fse.readJSON(
-      path.join(__dirname, "../../senderDetails.json")
+      senderDetailsPath
     );
 
     // * Go through senderDetails and identify a new array of only blacklisted sender details
@@ -24,11 +34,7 @@ const unsubscribe = async (): Promise<void> => {
       .map(({ id, name, unsubscribe }) => ({ id, name, unsubscribe }));
 
     // * Save list to disk (for now. Later actually perform the click on the http link or email to mail:to)
-    await fse.writeJSON(
-      path.join(__dirname, "../../blacklist.json"),
-      blacklist,
-      { spaces: 2 }
-    );
+    await fse.writeJSON(blacklistPath, blacklist, { spaces: 2 });
 
     console.log(
       chalk.green("List of blacklisted senders created successfully!")

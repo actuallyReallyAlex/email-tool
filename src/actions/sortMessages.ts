@@ -3,19 +3,25 @@ import fse from "fs-extra";
 import inquirer from "inquirer";
 import path from "path";
 
-import { SenderDetails } from "../types";
+import { AppState, SenderDetails } from "../types";
 
-const sortMessages = async (): Promise<void> => {
+const sortMessages = async (state: AppState): Promise<void> => {
   try {
     // * Read senderDetails
+    const senderDetailsPath = path.join(
+      __dirname,
+      `../../output/${state.userEmail}/senderDetails.json`
+    );
+    const choicesPath = path.join(
+      __dirname,
+      `../../output/${state.userEmail}/choices.json`
+    );
     const senderDetails: SenderDetails[] = await fse.readJSON(
-      path.join(__dirname, "../../senderDetails.json")
+      senderDetailsPath
     );
 
     // * Check if choices already exist
-    const choicesExist = await fse.pathExists(
-      path.join(__dirname, "../../choices.json")
-    );
+    const choicesExist = await fse.pathExists(choicesPath);
 
     let existingChoices: {
       blacklist: string[];
@@ -28,9 +34,7 @@ const sortMessages = async (): Promise<void> => {
     };
 
     if (choicesExist) {
-      existingChoices = await fse.readJSON(
-        path.join(__dirname, "../../choices.json")
-      );
+      existingChoices = await fse.readJSON(choicesPath);
     }
 
     // * For each sender, go through and "whitelist" / "blacklist" / "remove"
@@ -85,13 +89,9 @@ const sortMessages = async (): Promise<void> => {
 
       const updatedChoices = { ...existingChoices, ...choices };
 
-      await fse.writeJSON(
-        path.join(__dirname, "../../choices.json"),
-        updatedChoices,
-        {
-          spaces: 2,
-        }
-      );
+      await fse.writeJSON(choicesPath, updatedChoices, {
+        spaces: 2,
+      });
     }
 
     console.log(chalk.green("Choices saved successfully!"));

@@ -124,7 +124,7 @@ export const interpretMenuAction = async (state: AppState): Promise<void> => {
       findMessages: async (state: AppState): Promise<void> => {
         await titleScreen("Email Tool");
 
-        await findMessages();
+        await findMessages(state);
 
         console.log("Press any key to return to Main Menu ...");
         await keypress();
@@ -150,7 +150,7 @@ export const interpretMenuAction = async (state: AppState): Promise<void> => {
       sortMessages: async (state: AppState): Promise<void> => {
         await titleScreen("Email Tool");
 
-        await sortMessages();
+        await sortMessages(state);
 
         console.log("Press any key to return to Main Menu ...");
         await keypress();
