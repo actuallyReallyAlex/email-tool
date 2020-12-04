@@ -1,13 +1,15 @@
 import chalk from "chalk";
 import EventEmitter from "events";
 import fse from "fs-extra";
-import { google } from "googleapis";
+import { OAuth2Client } from "google-auth-library";
 import path from "path";
 
 import { displayMainMenu, interpretMenuAction } from "./menu";
-import { authorize, titleScreen } from "./util";
+import { authenticate, titleScreen } from "./util";
 
-import { AppState, Credentials } from "./types";
+import { AppState, Credentials, Token } from "./types";
+import addAccount from "./actions/addAccount";
+import selectAccount from "./actions/selectAccount";
 
 const main = async (): Promise<void> => {
   const menuActionEmitter = new EventEmitter.EventEmitter();
@@ -17,18 +19,76 @@ const main = async (): Promise<void> => {
     await interpretMenuAction(state);
   });
 
+  const outputDirectory = path.join(__dirname, "../output");
+
+  // * Ensure output directory
+  await fse.ensureDir(outputDirectory);
+
+  // * Read tokens
+  let tokens: Token[] = await fse.readJSON(
+    path.join(__dirname, "../tokens.json")
+  );
+
   const credentials: Credentials = await fse.readJSON(
     path.join(__dirname, "../credentials.json")
   );
-  const auth = await authorize(credentials);
-  const gmail = google.gmail({ version: "v1", auth });
-  const profileResponse = await gmail.users.getProfile({ userId: "me" });
-  const userEmail = profileResponse.data.emailAddress || "Email Not Found";
+  const { client_secret, client_id, redirect_uris } = credentials.installed;
+  let oAuth2Client: OAuth2Client;
+  let userEmail: string = "";
+  let labelId: string = "";
+
+  if (tokens.length === 0) {
+    // * Initial setup
+    const result: {
+      authentication: OAuth2Client;
+      labelId: string;
+      userEmail: string;
+    } | void = await addAccount();
+    if (!result) {
+      throw new Error("No result!");
+    }
+    oAuth2Client = result.authentication;
+    userEmail = result.userEmail;
+    labelId = result.labelId;
+  } else if (tokens.length === 1) {
+    const result: {
+      authentication: OAuth2Client;
+      userEmail: string;
+    } | void = await authenticate(
+      client_id,
+      client_secret,
+      redirect_uris[0],
+      tokens[0]
+    );
+    if (!result) {
+      throw new Error("No result!");
+    }
+    oAuth2Client = result.authentication;
+    userEmail = result.userEmail;
+    labelId = tokens[0].labelId;
+  } else {
+    // * User picks an account
+    const result: {
+      authentication: OAuth2Client;
+      labelId: string;
+      userEmail: string;
+    } | void = await selectAccount();
+    if (!result) {
+      throw new Error("No result!");
+    }
+    oAuth2Client = result.authentication;
+    userEmail = result.userEmail;
+    labelId = result.labelId;
+  }
 
   // * Application State
   const state: AppState = {
+    authentication: oAuth2Client,
+    labelId,
     menuAction: null,
     menuActionEmitter,
+    numberOfAccounts: tokens.length,
+    outputDirectory,
     userEmail,
   };
 

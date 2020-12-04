@@ -3,10 +3,34 @@ import chalk from "chalk";
 import clear from "clear";
 import figlet from "figlet";
 import fse from "fs-extra";
+import { OAuth2Client } from "google-auth-library";
 import { google } from "googleapis";
 import path from "path";
 
-import { Credentials } from "./types";
+import { Credentials, Token } from "./types";
+
+export const authenticate = async (
+  client_id: string,
+  client_secret: string,
+  redirect_uri: string,
+  token: Token
+): Promise<{ authentication: OAuth2Client; userEmail: string } | void> => {
+  try {
+    const oAuth2Client = new google.auth.OAuth2(
+      client_id,
+      client_secret,
+      redirect_uri
+    );
+    oAuth2Client.setCredentials(token);
+    const gmail = google.gmail({ version: "v1", auth: oAuth2Client });
+    const profileResponse = await gmail.users.getProfile({ userId: "me" });
+    const userEmail = profileResponse.data.emailAddress || "Email Not Found";
+
+    return { authentication: oAuth2Client, userEmail };
+  } catch (error) {
+    console.error(chalk.red(error));
+  }
+};
 
 export const authorize = async (credentials: Credentials): Promise<any> => {
   try {

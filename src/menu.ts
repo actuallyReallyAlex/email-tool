@@ -2,7 +2,9 @@ import boxen from "boxen";
 import chalk from "chalk";
 import inquirer from "inquirer";
 
+import addAccount from "./actions/addAccount";
 import findMessages from "./actions/findMessages";
+import selectAccount from "./actions/selectAccount";
 import sortMessages from "./actions/sortMessages";
 import unsubscribe from "./actions/unsubscribe";
 
@@ -10,6 +12,7 @@ import { blankBoxenStyle } from "./constants";
 import { titleScreen } from "./util";
 
 import { AppState, MenuAction } from "./types";
+import { OAuth2Client } from "google-auth-library";
 
 /**
  * Displays Main Menu to user.
@@ -33,7 +36,14 @@ export const displayMainMenu = (state: AppState): Promise<MenuAction> =>
             { value: "unsubscribe", name: "Unsubscribe" },
             new inquirer.Separator(),
             { value: "about", name: "About" },
+            {
+              value: "selectAccount",
+              name: "Select Account",
+              disabled: state.numberOfAccounts === 1,
+            },
+            { value: "addAccount", name: "Add Account" },
             { value: "exit", name: "Exit" },
+            new inquirer.Separator(),
           ],
         },
       ]);
@@ -90,20 +100,57 @@ export const interpretMenuAction = async (state: AppState): Promise<void> => {
         await keypress();
         state.menuActionEmitter.emit("actionCompleted", state);
       },
-      exit: (state: AppState): void => process.exit(),
-      findMessages: async (state: AppState): Promise<void> => {
+      addAccount: async (state: AppState): Promise<void> => {
         await titleScreen("Email Tool");
 
-        await findMessages();
+        const result: {
+          authentication: OAuth2Client;
+          userEmail: string;
+        } | void = await addAccount();
+
+        if (!result) {
+          throw new Error("No result!");
+        }
+
+        state.authentication = result.authentication;
+        state.userEmail = result.userEmail;
+        state.numberOfAccounts = state.numberOfAccounts + 1;
 
         console.log("Press any key to return to Main Menu ...");
         await keypress();
         state.menuActionEmitter.emit("actionCompleted", state);
       },
+      exit: (state: AppState): void => process.exit(),
+      findMessages: async (state: AppState): Promise<void> => {
+        await titleScreen("Email Tool");
+
+        await findMessages(state);
+
+        console.log("Press any key to return to Main Menu ...");
+        await keypress();
+        state.menuActionEmitter.emit("actionCompleted", state);
+      },
+      selectAccount: async (state: AppState): Promise<void> => {
+        await titleScreen("Email Tool");
+
+        const result: {
+          authentication: OAuth2Client;
+          userEmail: string;
+        } | void = await selectAccount();
+
+        if (!result) {
+          throw new Error("No result!");
+        }
+
+        state.authentication = result.authentication;
+        state.userEmail = result.userEmail;
+
+        state.menuActionEmitter.emit("actionCompleted", state);
+      },
       sortMessages: async (state: AppState): Promise<void> => {
         await titleScreen("Email Tool");
 
-        await sortMessages();
+        await sortMessages(state);
 
         console.log("Press any key to return to Main Menu ...");
         await keypress();
@@ -112,7 +159,7 @@ export const interpretMenuAction = async (state: AppState): Promise<void> => {
       unsubscribe: async (state: AppState): Promise<void> => {
         await titleScreen("Email Tool");
 
-        await unsubscribe();
+        await unsubscribe(state);
 
         console.log("Press any key to return to Main Menu ...");
         await keypress();

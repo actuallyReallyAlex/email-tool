@@ -1,15 +1,20 @@
 import EventEmitter from "events";
+import { OAuth2Client } from "google-auth-library";
 
 export interface AppState {
+  authentication: OAuth2Client;
+  labelId: string;
   menuAction: MenuAction;
   menuActionEmitter: EventEmitter.EventEmitter;
+  numberOfAccounts: number;
+  outputDirectory: string;
   userEmail: string;
 }
 
 export interface Choices {
   blacklist: string[];
   whitelist: string[];
-  remove: string[]
+  remove: string[];
 }
 
 export interface Credentials {
@@ -24,10 +29,50 @@ export interface Credentials {
   };
 }
 
+export interface GetTokenResponse {
+  res: {
+    config: {
+      body: string;
+      data: string;
+      headers: {
+        Accept: string;
+        "Content-Type": string;
+        "User-Agent": string;
+        "x-goog-api-client": string;
+      };
+      method: string;
+      paramsSerializer: () => void;
+      responseType: string;
+      url: string;
+      validateStatus: () => void;
+    };
+    data: {
+      access_token: string;
+      expiry_date: number;
+      refresh_token: string;
+      scope: string;
+      token_type: string;
+    };
+    headers: {};
+    request: {};
+    status: number;
+    statusText: string;
+  };
+  tokens: {
+    access_token: string;
+    expiry_date: number;
+    refresh_token: string;
+    scope: string;
+    token_type: string;
+  };
+}
+
 export type MenuAction =
   | "about"
+  | "addAccount"
   | "exit"
   | "findMessages"
+  | "selectAccount"
   | "sortMessages"
   | "unsubscribe"
   | null;
@@ -48,6 +93,16 @@ export interface SenderDetails {
   numberOfMessages: number;
   unsubscribe: UnsubscribeDetails;
   unsubscribeUrl: string | null;
+}
+
+export interface Token {
+  labelId: string;
+  access_token: string;
+  emailAddress: string;
+  refresh_token: string;
+  scope: string;
+  token_type: string;
+  expiry_date: number;
 }
 
 interface UnsubscribeDetails {

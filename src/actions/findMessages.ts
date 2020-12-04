@@ -5,28 +5,26 @@ import path from "path";
 import ProgressBar from "progress";
 import { v4 as uuid } from "uuid";
 
-import { Credentials, Message, SenderDetails } from "../types";
+import { AppState, Message, SenderDetails } from "../types";
 
-import { authorize } from "../util";
-
-const findMessages = async (): Promise<void> => {
+const findMessages = async (state: AppState): Promise<void> => {
   try {
-    const credentials: Credentials = await fse.readJSON(
-      path.join(__dirname, "../../credentials.json")
+    const senderDetailsPath = path.join(
+      __dirname,
+      `../../output/${state.userEmail}/senderDetails.json`
     );
-    const auth = await authorize(credentials);
-
-    const gmail = google.gmail({ version: "v1", auth });
+    const gmail = google.gmail({ version: "v1", auth: state.authentication });
 
     const allMessages = [];
     let nextPageExists = true;
     let nextPageToken = undefined;
 
     console.log(chalk.yellow("Fetching messages ..."));
+
     while (nextPageExists) {
       const listOfMessages = await gmail.users.messages.list({
         userId: "me",
-        q: "unsubscribe",
+        q: "in:inbox AND unsubscribe",
         pageToken: nextPageToken,
         maxResults: 10000,
       });
@@ -55,7 +53,7 @@ const findMessages = async (): Promise<void> => {
     console.log("Gathering message data ...");
 
     const numberOfOperations = allMessages.length;
-    // * const numberOfOperations = 10;
+    // const numberOfOperations = 100;
 
     const messageDataBar = new ProgressBar(
       "[:bar] :percent (:current / :total) :etas",
@@ -146,11 +144,15 @@ const findMessages = async (): Promise<void> => {
             http:
               messageData.unsubscribeUrl
                 ?.split(",")
-                .find((val) => val.match(/http/) !== null) || null,
+                .find((val) => val.match(/http/) !== null)
+                ?.replace(/</g, "")
+                .replace(/>/g, "") || null,
             mailto:
               messageData.unsubscribeUrl
                 ?.split(",")
-                .find((val) => val.match(/mailto/) !== null) || null,
+                .find((val) => val.match(/mailto/) !== null)
+                ?.replace(/</g, "")
+                .replace(/>/g, "") || null,
           },
           unsubscribeUrl: messageData.unsubscribeUrl,
         };
@@ -168,13 +170,13 @@ const findMessages = async (): Promise<void> => {
       }
     });
 
-    await fse.writeJSON(
-      path.join(__dirname, "../../senderDetails.json"),
-      senderDetailsData,
-      {
-        spaces: 2,
-      }
+    await fse.ensureDir(
+      path.join(__dirname, `../../output/${state.userEmail}`)
     );
+
+    await fse.writeJSON(senderDetailsPath, senderDetailsData, {
+      spaces: 2,
+    });
 
     console.log(chalk.green("Sender Details report created successfully!"));
   } catch (error) {
