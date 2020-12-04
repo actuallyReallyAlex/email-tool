@@ -52,8 +52,8 @@ const findMessages = async (state: AppState): Promise<void> => {
 
     console.log("Gathering message data ...");
 
-    // const numberOfOperations = allMessages.length;
-    const numberOfOperations = 10;
+    const numberOfOperations = allMessages.length;
+    // const numberOfOperations = 100;
 
     const messageDataBar = new ProgressBar(
       "[:bar] :percent (:current / :total) :etas",
